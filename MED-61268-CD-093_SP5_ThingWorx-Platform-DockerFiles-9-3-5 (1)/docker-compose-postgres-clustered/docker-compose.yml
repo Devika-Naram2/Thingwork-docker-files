@@ -1,0 +1,305 @@
+version: '2.4'
+
+x-postgresql-init:
+  &postgresql-init-env
+  DATABASE_HOST: postgresql
+  DATABASE_PORT: 5432
+  DATABASE_ADMIN_USERNAME: ${DATABASE_ADMIN_USERNAME}
+  DATABASE_ADMIN_PASSWORD: ${DATABASE_ADMIN_PASSWORD}
+  DATABASE_ADMIN_SCHEMA: ${DATABASE_ADMIN_SCHEMA}
+  TWX_DATABASE_USERNAME: ${TWX_DATABASE_USERNAME}
+  TWX_DATABASE_PASSWORD: ${TWX_DATABASE_PASSWORD}
+  TWX_DATABASE_SCHEMA: ${TWX_DATABASE_SCHEMA}
+  TABLESPACE_LOCATION: /var/lib/postgresql/data
+
+x-security-cli:
+  &security-cli-env
+  KEYSTORE: 'true'
+  # NOTE: Set KEYSTORE_PASSWORD
+  KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+  KEYSTORE_PASSWORD_FILE_PATH: '/opt'
+  KEYSTORE_FILE_PATH: '/ThingworxStorage'
+  TWX_DATABASE_PASSWORD: ${TWX_DATABASE_PASSWORD}
+  SECRET_PROVISIONING_APP_KEY: ${PROVISIONING_APP_KEY}
+  CUSTOM_SECRET_LIST: 'encrypt.db.password:TWX_DATABASE_PASSWORD'
+  SECRET_CX_APP_KEY: ${CXSERVER_APP_KEY}
+
+x-platform:
+  &platform-env
+  ENABLE_CONSOLE_OUTPUT: 'true'
+  ENABLE_CLUSTERED_MODE: 'true'
+  HTTP_PORT: ${HTTP_PORT}
+  HTTP_SERVICE_NAME: ${HTTP_SERVICE_NAME}
+  # HTTPS platform config
+  #ENABLE_HTTPS: ${PLATFORM_HTTPS_ACTIVE}
+  #HTTPS_PORT: ${HTTPS_PORT}
+  #HTTPS_SERVICE_NAME: ${HTTPS_SERVICE_NAME}
+  #SSL_KEYSTORE_BASE_PATH: ${PLATFORM_SSL_KEYSTORE_FILE_PATH}
+  #SSL_KEYSTORE_FILENAME: ${PLATFORM_SSL_KEYSTORE_FILE_NAME}
+  #SSL_KEYSTORE_PASSWORD: ${PLATFORM_SSL_KEYSTORE_PASSWORD}
+  #TOMCAT_SSL_PROTOCOLS: ${TOMCAT_SSL_PROTOCOLS}
+  #TOMCAT_SSL_CIPHERS: ${TOMCAT_SSL_CIPHERS)
+  # Zookeeper config
+  COORDINATOR_HOSTS: zookeeper:${ZK_PORT}
+  IGNITE_ZK_CONNECTION: zookeeper:${ZK_PORT}
+
+  # Zookeeper config for SSL
+  #COORDINATOR_HOSTS: zookeeper:${ZK_SSL_PORT}
+  #IGNITE_ZK_CONNECTION: zookeeper:${ZK_SSL_PORT}
+  #ZK_SSL_ENABLED: ${ZK_SSL_ENABLED}
+  #ZK_SSL_KEYSTORE_LOCATION: ${ZK_SSL_KEYSTORE_LOCATION}
+  #ZK_SSL_KEYSTORE_PASSWORD: ${ZK_SSL_KEYSTORE_PASSWORD}
+  #ZK_SSL_TRUSTSTORE_LOCATION: ${ZK_SSL_TRUSTSTORE_LOCATION}
+  #ZK_SSL_TRUSTSTORE_PASSWORD: ${ZK_SSL_TRUSTSTORE_PASSWORD}
+
+  # Ignite SSL config
+  #IGNITE_SSL_ACTIVE: ${IGNITE_SSL_ACTIVE}
+  #IGNITE_KEYSTORE_FILE_PATH: ${IGNITE_KEYSTORE_FILE_PATH}
+  #IGNITE_KEYSTORE_PASSWORD: ${IGNITE_KEYSTORE_PASSWORD}
+  CATALINA_OPTS: -Xms2g -Xmx4g
+  DATABASE_HOST: postgresql
+  DATABASE_PORT: 5432
+  TWX_DATABASE_USERNAME: ${TWX_DATABASE_USERNAME}
+  TWX_DATABASE_SCHEMA: ${TWX_DATABASE_SCHEMA}
+  # must be set in HA mode so that each server starts can read the keystore
+  KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+  # NOTE: The following must be set for the Platform to start. This will be
+  # the initial Administrator password.
+  THINGWORX_INITIAL_ADMIN_PASSWORD:
+  # NOTE: The following must be set for the Platform to start. This will be
+  # the initial MetricsUser password.
+  THINGWORX_INITIAL_METRICS_USER_PASSWORD:
+  # App key that allows cxserver to connect to platform
+  SECRET_CX_APP_KEY: ${CXSERVER_APP_KEY}
+  # App key used for provisioning the platform on first startup
+  SECRET_PROVISIONING_APP_KEY: ${PROVISIONING_APP_KEY}
+  # EXTPKG defines import permissions
+  EXTPKG_IMPORT_POLICY_ENABLED: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_JARRES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_JSRES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_CSSRES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_JSONRES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_WEBAPPRES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_ENTITIES: 'false'
+  EXTPKG_IMPORT_POLICY_ALLOW_EXTENTITIES: 'false'
+  EXTPKG_IMPORT_POLICY_HA_COMPATIBILITY_LEVEL: WARN
+  DOCKER_DEBUG: 'true'
+  ENABLE_PROPERTY_TRANSFORM: 'false'
+  PROPERTY_TRANSFORM_RABBITMQ_HOST: localhost
+  PROPERTY_TRANSFORM_RABBITMQ_PORT: 5672
+  PROPERTY_TRANSFORM_RABBITMQ_USERNAME: admin
+  PROPERTY_TRANSFORM_RABBITMQ_PASSWORD:
+  PROPERTY_TRANSFORM_RABBITMQ_VHOST: /
+  # Uncomment the below to automatically download license
+  #LS_USERNAME: ${PTCUSERNAME}
+  #LS_PASSWORD: ${PTCPASSWORD}
+
+x-cxserver:
+  &cxserver-env
+  ENABLE_CLUSTERED_MODE: 'true'
+  CXSERVER_APP_KEY: ${CXSERVER_APP_KEY}
+  TWX_PLATFORM_SERVICE_NAME: ${HTTP_SERVICE_NAME}
+  TWX_PLATFORM_TLS_ENABLED: 'false'
+  LOG_LEVEL: INFO
+  CXSERVER_SSL_ENABLED: ${CXSERVER_SSL_ENABLED}
+  # Config for using SSL between cxserver & twx
+  #CXSERVER_SSL_CLIENT_AUTH_MODE: ${CXSERVER_SSL_CLIENT_AUTH_MODE}
+  #CXSERVER_SSL_KEYSTORE_LOCATION: ${CXSERVER_SSL_KEYSTORE_LOCATION}
+  #CXSERVER_SSL_KEYSTORE_PASSWORD: ${CXSERVER_SSL_KEYSTORE_PASSWORD}
+  #CXSERVER_SSL_TRUSTSTORE_LOCATION: ${CXSERVER_SSL_TRUSTSTORE_LOCATION}
+  #CXSERVER_SSL_TRUSTSTORE_PASSWORD: ${CXSERVER_SSL_TRUSTSTORE_PASSWORD}
+  SERVICE_DISCOVERY_ENDPOINT: zookeeper:${ZK_PORT}
+  # Config for using SSL between cxserver & zookeeper
+  #APP_XOPTS: -Dzookeeper.client.secure=true -Dzookeeper.ssl.keyStore.location=$ZK_SSL_KEYSTORE_LOCATION -Dzookeeper.ssl.keyStore.password=$ZK_SSL_KEYSTORE_PASSWORD -Dzookeeper.ssl.trustStore.location=$ZK_SSL_TRUSTSTORE_LOCATION -Dzookeeper.ssl.trustStore.password=$ZK_SSL_TRUSTSTORE_PASSWORD -Djavax.net.ssl.trustStore=$CXSERVER_SSL_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStorePassword=$CXSERVER_SSL_TRUSTSTORE_PASSWORD
+
+volumes:
+  storage:
+  extensionsPlatform1:
+  extensionsPlatform2:
+  # If using SSL add certs volume
+  #certs:
+
+
+services:
+  zookeeper:
+    image: zookeeper:${ZOOKEEPER_IMAGE_VERSION}
+    ports:
+      - 2181:2181
+      # SSL ports
+      #- 2281:2281
+    healthcheck:
+      test: echo ruok | nc localhost 2181 | grep imok
+      interval: 15s
+    environment:
+      JVMFLAGS: -Dzookeeper.4lw.commands.whitelist=ruok
+      # Add the following when using SSL
+      #SERVER_JVMFLAGS: -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory -Dzookeeper.ssl.keyStore.location=$ZK_SSL_KEYSTORE_LOCATION -Dzookeeper.ssl.keyStore.password=$ZK_SSL_KEYSTORE_PASSWORD -Dzookeeper.ssl.trustStore.location=$ZK_SSL_TRUSTSTORE_LOCATION -Dzookeeper.ssl.trustStore.password=$ZK_SSL_TRUSTSTORE_PASSWORD -Dzookeeper.ssl.quorum.keyStore.location=$ZK_SSL_KEYSTORE_LOCATION -Dzookeeper.ssl.quorum.keyStore.password=$ZK_SSL_KEYSTORE_PASSWORD -Dzookeeper.ssl.quorum.trustStore.location=$ZK_SSL_TRUSTSTORE_LOCATION -Dzookeeper.ssl.quorum.trustStore.password=$ZK_SSL_TRUSTSTORE_PASSWORD -Dzookeeper.ssl.quorum.hostnameVerification=false
+      #volumes:
+      #- certs:/certs
+      #- ../conf/zoo.cfg:/conf/zoo.cfg
+
+  postgresql:
+    image: postgres:13.0
+    command: postgres -c max_wal_size=480MB -c max_connections=200 -c checkpoint_completion_target=0.5
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 15s
+    environment:
+      POSTGRES_USER: ${DATABASE_ADMIN_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_ADMIN_PASSWORD}
+      POSTGRES_DB: ${DATABASE_ADMIN_SCHEMA}
+
+  postgresql-init:
+    image: thingworx/postgresql-init-twx:${PLATFORM_IMAGE_TAG}
+    entrypoint: bash -c -x "/usr/local/bin/db-check.sh && /usr/local/bin/db-setup.sh && sleep infinity"
+    healthcheck:
+      test: [ "CMD-SHELL", "grep 'success' tmp/status.txt || exit 1" ]
+      interval: 15s
+      retries: 5
+    environment:
+      <<: *postgresql-init-env
+
+  security-cli:
+    image: thingworx/security-tool:${SECURITY_IMAGE_TAG}
+    entrypoint: sh -c "/opt/docker-entrypoint.sh && sleep infinity"
+    healthcheck:
+      test: [ "CMD-SHELL", "grep 'success' status.txt || exit 1" ]
+      interval: 15s
+      retries: 5
+    environment:
+      <<: *security-cli-env
+    volumes:
+      - storage:/ThingworxStorage
+
+  ignite:
+    # This image is required to be built from the tw-cache-provider project
+    image: thingworx/ignite-twx:${IGNITE_IMAGE_TAG}
+    ports:
+      - 8080
+      - 11211
+      - 47100
+      - 47500
+      - 49112
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/ignite/bin/control.sh --baseline | grep 'Cluster state: active'" ]
+      interval: 15s
+    environment:
+      ZOOKEEPER_CONNECTION: zookeeper:${ZK_PORT}
+      IGNITE_ROOT_LOG_LEVEL: INFO
+      # Config for SSL
+      #IGNITE_SSL_ACTIVE: ${IGNITE_SSL_ACTIVE}
+      #IGNITE_KEYSTORE_FILE_PATH: ${IGNITE_KEYSTORE_FILE_PATH}
+      #IGNITE_KEYSTORE_PASSWORD: ${IGNITE_KEYSTORE_PASSWORD}
+
+    # Add volume for certs if using SSL
+    #volumes:
+    #  - certs:/certs
+
+  platform1:
+    image: thingworx/platform-postgres:${PLATFORM_IMAGE_TAG}
+    command: run
+    ports:
+      - 9000:8000
+      - 9080:8080
+      - 9990:9000
+      # Port for SSL
+      #- 9040:8443
+    healthcheck:
+      test: curl -f localhost:8080/Thingworx/health
+      interval: 15s
+      start_period: 120s
+    environment:
+      <<: *platform-env
+      PLATFORM_ID: platform1
+    volumes:
+      - storage:/ThingworxStorage
+      - extensionsPlatform1:/ThingworxStorage/extensions
+      # Use this to mount your orgs licence file, if not ThingWorx will fallback to temporary licence
+      #- ./license.bin:/ThingworxPlatform/license.bin
+      # Add volume for certs if using SSL
+      #- certs:/certs
+
+  platform2:
+    image: thingworx/platform-postgres:${PLATFORM_IMAGE_TAG}
+    command: run
+    ports:
+      - 9001:8000
+      - 9081:8080
+      - 9991:9000
+      # Port for SSL
+      #- 9040:8443
+    healthcheck:
+      test: curl -f localhost:8080/Thingworx/health
+      interval: 15s
+      start_period: 120s
+    environment:
+      <<: *platform-env
+      PLATFORM_ID: platform2
+    volumes:
+      - storage:/ThingworxStorage
+      - extensionsPlatform2:/ThingworxStorage/extensions
+      # Use this to mount your orgs licence file, if not ThingWorx will fallback to temporary licence
+      #- ./license.bin:/ThingworxPlatform/license.bin
+      # Add volume for certs if using SSL
+      #- certs:/certs
+
+
+  cxserver1:
+    # This image is required to be built from the always-on-protocol project
+    image: thingworx/cxserver-twx:${CXSERVER_IMAGE_TAG}
+    ports:
+      - 9200:8080
+      - 9290:9009
+    healthcheck:
+      test: curl -s -w '%{http_code}' -o /dev/stderr localhost:9009 | grep -w 200
+      interval: 5s
+      start_period: 120s
+    environment:
+      <<: *cxserver-env
+      CXSERVER_THING_NAME: cxserver1
+    # Add volume for certs if using SSL
+    #volumes:
+    #  - certs:/certs
+
+  cxserver2:
+    # This image is required to be built from the always-on-protocol project
+    image: thingworx/cxserver-twx:${CXSERVER_IMAGE_TAG}
+    ports:
+      - 9201:8080
+      - 9291:9009
+    healthcheck:
+      test: curl -s -w '%{http_code}' -o /dev/stderr localhost:9009 | grep -w 200
+      interval: 5s
+      start_period: 120s
+    environment:
+      <<: *cxserver-env
+      CXSERVER_THING_NAME: cxserver2
+    # Add volume for certs if using SSL
+    #volumes:
+    #  - certs:/certs
+
+  haproxy:
+    # This image is required to be built from the always-on-protocol project
+    image: haproxy:2.0.14
+    ports:
+      - 9100:8080
+      - 1936:1936
+    environment:
+      PLATFORM_ADDRESSES: platform1,platform2
+      CXSERVER_ADDRESSES: cxserver1,cxserver2
+      HAPROXY_STAT_USER: admin
+      HAPROXY_STAT_PASSWORD: thingworx
+      LOG_LEVEL: debug
+      PLATFORM_PORT: 8080
+      CXSERVER_PORT: 8080
+      # Config for SSL
+      #SSL_ENABLED: ${HAPROXY_SSL_ENABLED}
+      #SSL_CERT_PATH: /certs/haproxy.pem
+      #PLATFORM_SECURE: ${PLATFORM_HTTPS_ACTIVE}
+      #PLATFORM_SECURE_PORT: 8443
+      #CXSERVER_SECURE: ${CXSERVER_HTTPS_ACTIVE}
+      #CXSERVER_SECURE_PORT: 8443
+    volumes:
+      - ../conf:/usr/local/etc/haproxy:ro

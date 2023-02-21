@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+    <!-- THIS FILE HAS TO BE KEPT IN SYNC WITH THE INTERNAL logback.xml located in -->
+    <!-- thingworx-platform-common/src/logback.xml -->
+    <!-- The difference between these two files is in the loggers block  -->
+    <!-- where we have added console output flag for enabling/disabling console output-->
+
+    <!-- logs location store -->
+    <define name="LOG_PATH" class="com.thingworx.logging.StorageLocationProperty"/>
+    <!-- platform id -->
+    <define name="PLATFORM_ID" class="com.thingworx.logging.PlatformIdProperty"/>
+
+    <!-- each file should be at most 100MB, keep 7 days worth of history, but at most 10GB -->
+    <property name="MAX_FILE_SIZE" value="100MB"/>
+    <property name="MAX_HISTORY_SIZE" value="7"/>
+    <property name="TOTAL_SIZE_CAP" value="10GB"/>
+
+
+
+    <!-- JSON logs are disabled -->
+    <variable name="JSON_LOGS_ENABLE" value="${JSON_LOGS_ENABLE:-false}"/>
+
+
+    <!-- async appender config that affects all async appenders -->
+    <variable name="MAX_FLUSH_TIME" value="${MAX_FLUSH_TIME:-1000}"/>
+    <variable name="DISCARDING_THRESHOLD" value="${DISCARDING_THRESHOLD:-0}"/>
+    <variable name="NEVER_BLOCK" value="${NEVER_BLOCK:-false}"/>
+
+    <!--
+    **************************
+    ****  LAYOUT PATTERNS ****
+    **************************
+    -->
+    <property name="CONFIGURATION_LAYOUT_PATTERN"
+              value="%date{ yyyy-MM-dd HH:mm:ss.SSSZ} [L: %level] [O: %X{configObject}] [I: %X{objectInstance}] [U: %X{userID}] [S: %X{sessionID}] [P: ${PLATFORM_ID}] [T: %thread] %msg %ex{short}%n"/>
+
+    <property name="SCRIPT_ERROR_LAYOUT_PATTERN"
+              value="%date{ yyyy-MM-dd HH:mm:ss.SSSZ} [L: %level] [O: %logger{8}] [I: %X{objectInstance}] [U: %X{userID}] [S: %X{sessionID}] [P: ${PLATFORM_ID}] [T: %thread] %msg%n%nopex%X{jsRootException}"/>
+    
+    <property name="ERROR_LAYOUT_PATTERN"
+              value="%date{ yyyy-MM-dd HH:mm:ss.SSSZ} [L: %level] [O: %logger{8}] [I: %X{objectInstance}] [U: %X{userID}] [S: %X{sessionID}] [P: ${PLATFORM_ID}] [T: %thread] %msg %rootException%n"/>
+
+    <property name="LAYOUT_PATTERN"
+              value="%date{ yyyy-MM-dd HH:mm:ss.SSSZ} [L: %level] [O: %logger{8}] [I: %X{objectInstance}] [U: %X{userID}] [S: %X{sessionID}] [P: ${PLATFORM_ID}] [T: %thread] %msg%nopex%n"/>
+
+    <property name="CONSOLE_LAYOUT_PATTERN"
+              value="%date{ yyyy-MM-dd HH:mm:ss.SSSZ} [L: %level] [O: %logger{8}] [I: %X{objectInstance}] [U: %X{userID}] [S: %X{sessionID}] [P: ${PLATFORM_ID}] [T: %thread] %msg%n"/>
+
+    <!--
+    *********************
+    ****   FILTERS   ****
+    *********************
+    -->
+
+    <!-- filters out event logs with the instrumentation marker -->
+    <turboFilter class="ch.qos.logback.classic.turbo.MarkerFilter">
+        <Name>INSTRUMENTATION</Name>
+        <Marker>INSTRUMENTATION</Marker>
+        <OnMatch>DENY</OnMatch>
+    </turboFilter>
+
+  <!-- writes error message with stack trace to the error log when stack trace is enabled -->
+  <turboFilter class="com.thingworx.logging.filter.RedirectLogFilter"/>
+
+    <!--
+     ********************
+     ****  APPENDERS ****
+     ********************
+    -->
+
+    <!-- CONSOLE/STDOUT appender + JSON if enabled -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <if condition='property("JSON_LOGS_ENABLE").contains("true")'>
+            <then>
+                <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                    <customFields>{"platformId": "${PLATFORM_ID}" }</customFields>
+                </encoder>
+            </then>
+            <else>
+                <encoder>
+                    <pattern>${CONSOLE_LAYOUT_PATTERN}</pattern>
+                </encoder>
+            </else>
+        </if>
+    </appender>
+
+    <!-- application appender -->
+    <appender name="APPLICATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/ApplicationLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}ApplicationLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- configuration appender -->
+    <appender name="CONFIGURATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/ConfigurationLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}ConfigurationLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${CONFIGURATION_LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- error appender -->
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/ErrorLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}ErrorLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${ERROR_LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- script appender -->
+    <appender name="SCRIPT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/ScriptLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}ScriptLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- script error appender -->
+    <appender name="SCRIPT_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/ScriptErrorLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}ScriptErrorLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${SCRIPT_ERROR_LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- security appender -->
+    <appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/SecurityLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}SecurityLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- AUTH appender -->
+    <appender name="AUTH" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/AuthLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}AuthLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- communication appender -->
+    <appender name="COMMUNICATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/CommunicationLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}CommunicationLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- database appender -->
+    <appender name="DATABASE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        {% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}
+        <file>${LOG_PATH}/DatabaseLog.log</file>
+        {% else %}
+        <!-- Support multiple-JVM writing to the same log file -->
+        <prudent>true</prudent>
+        {% endif %}
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "false" %}archives/{% endif %}DatabaseLog.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY_SIZE}</maxHistory>
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="com.thingworx.logging.ThingWorxPatternLayoutEncoder">
+            <pattern>${LAYOUT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+    Async appender wrappers to all the above appenders.
+    Note: One and only one appender may be attached to AsyncAppender, so
+    one per each it is.
+    -->
+    <appender name="ASYNC_APPENDER_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONSOLE"/>
+        <queueSize>${MAX_QUEUE_SIZE_CONSOLE:-10000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_APPLICATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="APPLICATION"/>
+        <queueSize>${MAX_QUEUE_SIZE_APPLICATION:-10000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_CONFIGURATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="CONFIGURATION"/>
+        <queueSize>${MAX_QUEUE_SIZE_CONFIGURATION:-1000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ERROR"/>
+        <queueSize>${MAX_QUEUE_SIZE_ERROR:-5000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_SCRIPT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SCRIPT"/>
+        <queueSize>${MAX_QUEUE_SIZE_SCRIPT:-5000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_SCRIPT_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SCRIPT_ERROR"/>
+        <queueSize>${MAX_QUEUE_SIZE_SCRIPT_ERROR:-5000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_SECURITY" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SECURITY"/>
+        <queueSize>${MAX_QUEUE_SIZE_SECURITY:-1000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_AUTH" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="AUTH"/>
+        <queueSize>${MAX_QUEUE_SIZE_AUTH:-1000}</queueSize>
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>
+    </appender>
+    <appender name="ASYNC_APPENDER_COMMUNICATION" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="COMMUNICATION"/>
+        <queueSize>${MAX_QUEUE_SIZE_COMMUNICATION:-1000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+    <appender name="ASYNC_APPENDER_DATABASE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="DATABASE"/>
+        <queueSize>${MAX_QUEUE_SIZE_DATABASE:-1000}</queueSize>         
+        <maxFlushTime>${MAX_FLUSH_TIME}</maxFlushTime>
+        <discardingThreshold>${DISCARDING_THRESHOLD}</discardingThreshold>
+        <neverBlock>${NEVER_BLOCK}</neverBlock>    
+    </appender>
+
+    <!--
+     ********************
+     ****  LOGGERS ****
+     ********************
+    -->
+
+    <!-- communication logger -->
+    <logger name="CommunicationLog" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_COMMUNICATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- database logger -->
+    <logger name="DatabaseLog" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_DATABASE"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- configuration logger -->
+    <logger name="ConfigurationLog" level="ALL" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_CONFIGURATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- script error logger -->
+    <logger name="ScriptErrorLog" level="ALL" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_SCRIPT_ERROR"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- script logger -->
+    <logger name="ScriptLog" level="ALL" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_SCRIPT"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- security logger -->
+    <logger name="SecurityLog" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_SECURITY"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- error logger -->
+    <logger name="ErrorLog" level="ALL" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_ERROR"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <!-- configure spring security loggers to go to security logger -->
+    <logger name="org.springframework.security" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_AUTH"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <logger name="org.springframework.jdbc" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_AUTH"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <logger name="com.ptc.eauth.identity" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_AUTH"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <logger name="com.thingworx" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_APPLICATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <logger name="org" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_APPLICATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    <logger name="com" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC_APPENDER_APPLICATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </logger>
+
+    {% if env_var("ENABLE_SSO", "false") == "true" %}
+        <logger name="SecurityLog.com.thingworx.security.authentication.sso" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_APPENDER_SECURITY"/>
+            {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+            <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+            {% endif %}
+        </logger>
+
+        <logger name="SecurityLog.com.thingworx.security.sso" level="DEBUG" additivity="false">
+            <appender-ref ref="ASYNC_APPENDER_SECURITY"/>
+            {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+            <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+            {% endif %}
+        </logger>
+     {% endif %}
+
+    <!--
+    top-level root logger uses the application appender.
+    -->
+    <root level="INFO">
+        <appender-ref ref="ASYNC_APPENDER_APPLICATION"/>
+        {% if env_var("ENABLE_CONSOLE_OUTPUT", "false") == "true" %}
+        <appender-ref ref="ASYNC_APPENDER_CONSOLE"/>
+        {% endif %}
+    </root>
+</configuration>

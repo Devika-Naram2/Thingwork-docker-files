@@ -1,0 +1,163 @@
+{
+	"PlatformSettingsConfig": {
+		"BasicSettings": {
+			"BackupStorage": "/ThingworxBackupStorage",
+			"DatabaseLogRetentionPolicy": 7,
+			"EnableBackup": true,
+			"EnableClusteredMode": false,
+			"EnableSystemLogging": false,
+			"HTTPRequestHeaderMaxLength": 2000,
+			"HTTPRequestParameterMaxLength": 2000,
+			"ScriptTimeout": 30,
+			"Storage": "/ThingworxStorage",
+			"InternalAesCryptographicKeyLength": 128
+		},
+		"AdministratorUserSettings": {
+			"InitialPassword": "th!ngw0rxTH1ngw0rx"
+		},
+		"MetricsUserSettings": {
+			"InitialPassword": "mEtr!cSuS3rpA55w0Rd"
+		},
+		"ClusteredModeSettings": {
+			"CoordinatorConnectionTimeout": 10000,
+			"CoordinatorHosts": "127.0.0.1:2181",
+			"CoordinatorMaxRetries": 3,
+			"CoordinatorRetryTimeout": 3000,
+			"CoordinatorSessionTimeout": 90000,
+			"LoadBalancerBase64EncodedCredentials": "QWRtaW5pc3RyYXRvcjp0clVmNnl1ejI/X0d1Yg==",
+			"PlatformId": "platform1"
+		},
+		"SolutionCentralSettings": {
+			"SolutionCentralHost": "sc-twxci.a.cirrus.msai.devops.ptc.io",
+			"KeyStorePath": "/ThingworxPlatform/sc-keystore",
+			"KeyStorePass": "changeit"
+		},
+		"ExtensionPackageImportPolicy": {
+			"importEnabled": true,
+			"allowJarResources": true,
+			"allowJavascriptResources": true,
+			"allowCSSResources": true,
+			"allowJSONResources": true,
+			"allowWebAppResources": true,
+			"allowEntities": true,
+			"allowExtensibleEntities": true,
+			"haCompatibilityImportLevel": "WARN"
+		},
+		"ContentTypeSettings": {
+			"supportedMediaEntityContentTypes": [
+				"image/svg+xml",
+				"image/png",
+				"image/gif",
+				"image/bmp",
+				"image/jpeg",
+				"application/pdf",
+				"image/vnd.microsoft.icon"
+			]
+		}
+	},
+	"PersistenceProviderPackageConfigs": {
+		"H2PersistenceProviderPackage": {
+			"ConnectionInformation": {
+				"acquireIncrement": 5,
+				"acquireRetryAttempts": 30,
+				"acquireRetryDelay": 1000,
+				"checkoutTimeout": 30000,
+				"idleConnectionTestPeriod": 6,
+				"initialPoolSize": 10,
+				"maxConnectionAge": 0,
+				"maxIdleTime": 0,
+				"maxIdleTimeExcessConnections": 36000,
+				"maxPoolSize": 100,
+				"maxStatements": 0,
+				"maxStatementsPerConnection": 50,
+				"minPoolSize": 10,
+				"numHelperThreads": 6,
+				"tableLockTimeout": 10000,
+				"password": "password",
+				"testConnectionOnCheckout": false,
+				"unreturnedConnectionTimeout": 0,
+				"username": "twadmin"
+			},
+			"StreamProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumQueueSize": 250000,
+				"maximumWaitTime": 10000,
+				"numberOfProcessingThreads": 5,
+				"scanRate": 5,
+				"sizeThreshold": 1000
+			},
+			"DataTableProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumQueueSize": 250000,
+				"maximumWaitTime": 10000,
+				"numberOfProcessingThreads": 1,
+				"scanRate": 5,
+				"sizeThreshold": 1
+			},
+			"ValueStreamProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumWaitTime": 10000,
+				"maximumQueueSize": 500000,
+				"numberOfProcessingThreads": 5,
+				"scanRate": 5,
+				"sizeThreshold": 1000
+			}
+		},
+		"PostgresPersistenceProviderPackage": {
+			"ConnectionInformation": {
+				"acquireIncrement": 5,
+				"acquireRetryAttempts": 3,
+				"acquireRetryDelay": 10000,
+				"checkoutTimeout": 1000000,
+				"driverClass": "org.postgresql.Driver",
+				"fetchSize": 5000,
+				"idleConnectionTestPeriod": 60,
+				"initialPoolSize": 5,
+				"jdbcUrl": "jdbc:postgresql://localhost:5432/thingworx",
+				"maxConnectionAge": 0,
+				"maxIdleTime": 0,
+				"maxIdleTimeExcessConnections": 300,
+				"maxPoolSize": 100,
+				"maxStatements": 100,
+				"minPoolSize": 5,
+				"numHelperThreads": 8,
+				"password": "password",
+				"testConnectionOnCheckout": false,
+				"unreturnedConnectionTimeout": 0,
+				"username": "twadmin"
+			},
+			"StreamProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumQueueSize": 250000,
+				"maximumWaitTime": 10000,
+				"numberOfProcessingThreads": 5,
+				"scanRate": 5,
+				"sizeThreshold": 1000
+			},
+			"DataTableProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumQueueSize": 250000,
+				"maximumWaitTime": 10000,
+				"numberOfProcessingThreads": 1,
+				"scanRate": 5,
+				"sizeThreshold": 1
+			},
+			"ValueStreamProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumWaitTime": 10000,
+				"maximumQueueSize": 500000,
+				"numberOfProcessingThreads": 5,
+				"scanRate": 5,
+				"sizeThreshold": 1000
+			},
+			"PersistentPropertyProcessorSettings": {
+				"maximumBlockSize": 2500,
+				"maximumWaitTime": 1000,
+				"maximumQueueSize": 100000,
+				"numberOfProcessingThreads": 20,
+				"scanRate": 25,
+				"sizeThreshold": 1000
+			}
+		}
+	}
+}

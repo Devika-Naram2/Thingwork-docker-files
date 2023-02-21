@@ -1,0 +1,12 @@
+{
+  "PersistenceProviderPackageConfigs": {
+    "AzuresqlPersistenceProviderPackage": {
+			"ConnectionInformation": {
+			    "driverClass": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+				"jdbcUrl": "jdbc:sqlserver://{{ env_var("DATABASE_HOST", "azuresql") }}:{{ env_var("DATABASE_PORT", "1433") }};databaseName={{ env_var("TWX_DATABASE_SCHEMA", "thingworx") }};applicationName=Thingworx;",
+				"password": "encrypt.db.password",
+				"username": "{{ env_var("TWX_DATABASE_USERNAME", "") }}"
+			}
+		}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "PersistenceProviderPackageConfigs": {
+    "MssqlPersistenceProviderPackage": {
+      "ConnectionInformation": {
+        "driverClass": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+        "jdbcUrl": "jdbc:sqlserver://{{ env_var("DATABASE_HOST", "mssql") }}:{{ env_var("DATABASE_PORT", "1433") }};databaseName={{ env_var("TWX_DATABASE_SCHEMA", "thingworx") }};applicationName=Thingworx;",
+        "username": "{{ env_var("TWX_DATABASE_USERNAME", "") }}",
+        "password": "encrypt.db.password"
+      }
+    }
+  }
+}

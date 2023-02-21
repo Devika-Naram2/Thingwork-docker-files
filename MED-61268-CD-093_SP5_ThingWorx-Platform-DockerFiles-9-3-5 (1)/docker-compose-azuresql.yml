@@ -1,0 +1,78 @@
+version: '2.2'
+
+volumes:
+  storage:
+
+services:
+  # NOTE: There is no test database for the ThingWorx Azure SQL Persitence Provider
+  # as you need to create a database resource in Azure to connect to.
+
+
+  azuresql-init:
+    image: thingworx/azuresql-init-twx:latest
+    entrypoint: bash -c -x "/usr/local/bin/db-check.sh && /usr/local/bin/db-setup.sh && sleep infinity"
+    healthcheck:
+      test: [ "CMD-SHELL", "grep 'success' tmp/status.txt || exit 1" ]
+      interval: 15s
+      retries: 5
+    environment:
+      - "DATABASE_HOST=<azuresql url>"
+      - "DATABASE_PORT=<azuresql port>"
+      - "DATABASE_ADMIN_USERNAME=<azuresql admin user>"
+      - "DATABASE_ADMIN_PASSWORD=<azuresql admin password>"
+      - "TWX_DATABASE_USERNAME="
+      - "TWX_DATABASE_SCHEMA="
+      - "TWX_DATABASE_PASSWORD="
+
+  security-cli:
+    image: thingworx/security-tool:latest
+    entrypoint: sh -c "/opt/docker-entrypoint.sh && sleep infinity"
+    healthcheck:
+      test: [ "CMD-SHELL", "grep 'success' status.txt || exit 1" ]
+      interval: 15s
+      retries: 5
+    environment:
+      KEYSTORE: 'true'
+      # NOTE: Set KEYSTORE_PASSWORD (Must match value from platform container)
+      KEYSTORE_PASSWORD:
+      KEYSTORE_PASSWORD_FILE_PATH: '/opt'
+      KEYSTORE_FILE_PATH: '/ThingworxStorage'
+      CUSTOM_SECRET_LIST: 'encrypt.db.password:TWX_DATABASE_PASSWORD'
+      # NOTE: Set TWX_DATABASE_PASSWORD
+      TWX_DATABASE_PASSWORD:
+    volumes:
+      - storage:/ThingworxStorage
+
+  platform:
+    image: thingworx/platform-azuresql:latest
+    healthcheck:
+      test: curl -f localhost:8080/Thingworx/health
+      interval: 15s
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      security-cli:
+        condition: service_healthy
+      azuresql-init:
+        condition: service_healthy
+    environment:
+      - "CATALINA_OPTS=-Xms2g -Xmx4g"
+      # NOTE: Set KEYSTORE_PASSWORD (Must match value from security-cli container)
+      - "KEYSTORE_PASSWORD="
+      - "DATABASE_HOST=<azuresql url>"
+      - "TWX_DATABASE_USERNAME="
+      - "TWX_DATABASE_SCHEMA="
+      # NOTE: The following must be set for the Platform to start. This will be
+      # the initial Administrator password.
+      - "THINGWORX_INITIAL_ADMIN_PASSWORD="
+      # NOTE: The following must be set for the Platform to start. This will be
+      # the initial MetricsUser password.
+      - "THINGWORX_INITIAL_METRICS_USER_PASSWORD="
+      #Uncomment the below to automatically download license
+      #- "LS_USERNAME=${PTCUSERNAME}"
+      #- "LS_PASSWORD=${PTCPASSWORD}"
+    # Use this to mount your orgs licence file, if not ThingWorx will fallback to temporary licence
+    volumes:
+      - storage:/ThingworxStorage
+    #  - ./license.bin:/ThingworxPlatform/license.bin

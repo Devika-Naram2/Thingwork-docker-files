@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<Server port="{{ env_var("SERVER_PORT", "7005") }}" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+  <Service name="Catalina">
+
+{% if env_var("ENABLE_HTTP", "true") == "true" %}
+    <Connector port="{{ env_var("SERVER_HTTP_PORT", "8080") }}"
+               protocol="org.apache.coyote.http11.Http11NioProtocol"
+               connectionTimeout="{{ env_var("TOMCAT_CONNECTION_TIMEOUT", "20000") }}"
+               maxConnections="{{ env_var("TOMCAT_MAX_CONNECTIONS", "10000") }}"
+               maxThreads="{{ env_var("TOMCAT_MAX_THREADS", "200") }}"
+               compression="{{ env_var("TOMCAT_COMPRESSION", "off") }}"
+               compressionMinSize="{{ env_var("TOMCAT_COMPRESSION_MIN_SIZE", "2048") }}"
+               useSendfile="{{ env_var("TOMCAT_USE_SEND_FILE", "true") }}"
+               redirectPort="{{ env_var("SERVER_HTTPS_PORT", "8443") }}" />
+{% endif %}
+{% if env_var("ENABLE_HTTPS", "false") == "true" %}
+    {% set ciphers = env_var("TOMCAT_SSL_CIPHERS", "") %}
+    <Connector port="{{ env_var("SERVER_HTTPS_PORT", "8443") }}"
+               protocol="org.apache.coyote.http11.Http11NioProtocol"
+               connectionTimeout="{{ env_var("TOMCAT_CONNECTION_TIMEOUT", "20000") }}"
+               maxConnections="{{ env_var("TOMCAT_MAX_CONNECTIONS", "10000") }}"
+               maxThreads="{{ env_var("TOMCAT_MAX_THREADS", "200") }}"
+               compression="{{ env_var("TOMCAT_COMPRESSION", "off") }}"
+               compressionMinSize="{{ env_var("TOMCAT_COMPRESSION_MIN_SIZE", "2048") }}"
+               useSendfile="{{ env_var("TOMCAT_USE_SEND_FILE", "true") }}"
+               keystoreFile="{{ env_var("SSL_KEYSTORE_BASE_PATH", "/ThingworxPlatform") }}/{{ env_var("SSL_KEYSTORE_FILENAME", "keystore.jks") }}"
+               keystorePass="{{ env_var("SSL_KEYSTORE_PASSWORD", "") }}"
+               clientAuth="false"
+               sslProtocol="{{ env_var("TOMCAT_SSL_PROTOCOLS", "TLSv1.2") }}"
+               {% if ciphers != "" %}
+               ciphers="{{ ciphers }}"
+               {% endif %}
+               SSLEnabled="true" scheme="https" secure="true" />
+{% endif %}
+    <Engine name="Catalina" defaultHost="localhost">
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <Host name="localhost"  appBase="webapps"
+            unpackWARs="true" autoDeploy="true">
+
+        <Valve className="{{ env_var("TOMCAT_ACCESS_LOGGING_CLASS_NAME", "org.apache.catalina.valves.AccessLogValve") }}"
+               directory="{{ env_var("THINGWORX_STORAGE", "/ThingworxStorage") }}/logs"
+               prefix="{{ env_var("TOMCAT_ACCESS_LOGGING_PREFIX", "localhost_access_log") }}"
+               suffix="{{ env_var("TOMCAT_ACCESS_LOGGING_SUFFIX", ".txt") }}"
+               pattern="{{ env_var("TOMCAT_ACCESS_LOGGING_PATTERN", "%h %l %u %t &quot;%r&quot; %s %b %D") }}" />
+        <Valve className="org.apache.catalina.valves.ErrorReportValve"
+               showReport="false"
+               showServerInfo="false" />
+
+      </Host>
+    </Engine>
+  </Service>
+</Server>

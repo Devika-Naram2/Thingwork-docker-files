@@ -1,0 +1,57 @@
+version: '2.4'
+
+services:
+  ignite:
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+
+  mssql-init:
+    depends_on:
+      mssql:
+        condition: service_healthy
+
+  platform1:
+    depends_on:
+      security-cli:
+        condition: service_healthy
+      mssql-init:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+      ignite:
+        condition: service_healthy
+
+  platform2:
+    depends_on:
+      security-cli:
+        condition: service_healthy
+      mssql-init:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+      ignite:
+        condition: service_healthy
+
+  cxserver1:
+    depends_on:
+        platform1:
+          condition: service_healthy
+        platform2:
+          condition: service_healthy
+
+  cxserver2:
+    depends_on:
+      platform1:
+        condition: service_healthy
+      platform2:
+        condition: service_healthy
+
+  # ha proxy must start after platform and connection server to properlay resolve
+  # the host names, it only resolves once at startup
+  haproxy:
+    depends_on:
+      cxserver1:
+        condition: service_healthy
+      cxserver2:
+        condition: service_healthy

@@ -1,0 +1,197 @@
+{
+  "PlatformSettingsConfig": {
+    "BasicSettings": {
+      "BackupStorage": "{{ env_var("THINGWORX_BACKUP_STORAGE", "/ThingworxBackupStorage") }}",
+      "EnableBackup": {{ env_var("ENABLE_BACKUP", "false") }},
+      "EnableClusteredMode": {{ env_var("ENABLE_CLUSTERED_MODE", "false") }},
+      "EnableHA": {{ env_var("ENABLE_HA", "false") }},
+      "EnableSystemLogging": {{ env_var("ENABLE_LOGGING", "true") }},
+      "Storage": "{{ env_var("THINGWORX_STORAGE", "/ThingworxStorage") }}",
+      "HTTPRequestHeaderMaxLength": {{ env_var("HTTP_REQUEST_HEADER_MAX_LENGTH", "2000") }},
+      "HTTPRequestParameterMaxLength": {{ env_var("HTTP_REQUEST_PARAMETER_MAX_LENGTH", "2000") }},
+      "EnableSSO": {{ env_var("ENABLE_SSO", "false") }},
+      {% if env_var("METRICS_REQUEST_URL", "") != "" %}
+      "MetricsRequestURL": "{{ env_var("METRICS_REQUEST_URL", "") }}",
+      "MetricsReportingUsername": "{{ env_var("METRICS_REPORTING_USERNAME", "") }}",
+      "MetricsReportingPassword": "{{ env_var("METRICS_REPORTING_PASSWORD", "") }}",
+      {% endif %}
+      "ScriptTimeout": {{ env_var("SCRIPT_TIMEOUT", "30") }},
+      "MetricsLoggingFrequency": "{{ env_var("METRICS_LOGGING_FREQUENCY", "30") }}",
+      "MetricsLoggingLevel": "{{ env_var("METRICS_LOGGING_LEVEL", "WARN") }}",
+      "EnableBetaFeatures" : {{ env_var("ENABLE_BETA_FEATURES", "false") }},
+      "OrderBatches": {{ env_var("ORDER_BATCHES", "false") }}
+    },
+    "AdministratorUserSettings": {
+        "InitialPassword": "{{ env_var("THINGWORX_INITIAL_ADMIN_PASSWORD", "") }}"
+    },
+	"MetricsUserSettings": {
+		"InitialPassword": "{{ env_var("THINGWORX_INITIAL_METRICS_USER_PASSWORD", "") }}"
+	},
+    "ClusteredModeSettings": {
+      "CoordinatorHosts": "{{ env_var("COORDINATOR_HOSTS", "") }}",
+      "ZKNamespace" : "{{ env_var("ZOOKEEPER_BASE_PATH","")}}",
+      "MetricsCacheFrequency": "{{ env_var("METRICS_CACHE_FREQUENCY", "60000") }}",
+      "PlatformId": "{{ env_var("PLATFORM_ID", "") }}",
+      "ModelSyncPollInterval": "{{ env_var("MODEL_SYNC_POLL_INTERVAL", "100") }}",
+      "ModelSyncTimeout": "{{ env_var("MODEL_SYNC_TIMEOUT", "120000") }}",
+      "ModelSyncMaxDBUnavailableErrors": "{{ env_var("MODEL_SYNC_MAX_DB_UNAVAILABLE_ERRORS", "10") }}",
+      "ModelSyncMaxCacheUnavailableErrors": "{{ env_var("MODEL_SYNC_MAX_CACHE_UNAVAILABLE_ERRORS", "10") }}",
+      "IgnoreInactiveInterfaces": {{ env_var("IGNORE_INACTIVE_INTERFACES", "true") }},
+      "IgnoreVirtualInterfaces": {{ env_var("IGNORE_VIRTUAL_INTERFACES", "true") }},
+      "HostAddressFilter": "{{ env_var("HOST_ADDRESS_FILTER", "") }}"
+    },
+    "SCIMSettings": {
+        "enableSCIM": {{ env_var("ENABLE_SCIM", "false") }},
+        "ignorePFTestConnections": {{ env_var("SCIM_IGNORE_PF_TEST_CONNECTIONS", "false") }},
+        "autoStart": {{ env_var("SCIM_AUTOSTART", "false") }}
+    },
+    "HASettings": {
+        "CoordinatorConnectionTimeout": 10000,
+        "CoordinatorHosts": "{{ env_var("COORDINATOR_HOSTS", "127.0.0.1:2181") }}",
+        "CoordinatorMaxRetries": 3,
+        "CoordinatorRetryTimeout": 3000,
+        "CoordinatorSessionTimeout": 90000,
+        "LoadBalancerBase64EncodedCredentials": "QWRtaW5pc3RyYXRvcjp0clVmNnl1ejI/X0d1Yg=="
+    },
+    "OrchestrationSettings": {
+        "EnableOrchestration": {{ env_var("ENABLE_ORCHESTRATION", "false") }},
+        "QueueHost": "{{ env_var("RABBITMQ_HOST", "localhost") }}",
+        "QueuePort": {{ env_var("RABBITMQ_PORT", "5672") }},
+        "QueueName": "{{ env_var("RABBITMQ_QUEUE_NAME", "256mb") }}",
+        "QueueUsername": "{{ env_var("RABBITMQ_USERNAME", "symphuser") }}",
+        "QueuePassword": "{{ env_var("RABBITMQ_PASSWORD", "symphpass") }}",
+        "QueueVHost": "{{ env_var("RABBITMQ_VHOST", "symphony") }}",
+        "FlowUrl" : "{{ env_var("FLOW_URL", "") }}",
+        "OauthUrl" : "{{ env_var("OAUTH_URL", "") }}",
+        "ExchangeUrl" : "{{ env_var("EXCHANGE_URL", "") }}",
+        "TriggerUrl": "{{ env_var("TRIGGER_URL", "") }}",
+        "LookupUrl": "{{ env_var("LOOKUP_URL", "") }}",
+        "TurnOffScopesApprovalPopup": "{{ env_var("TURN_OFF_SCOPES_APPROVAL_POPUP", "") }}"
+    },
+    "PropertyTransformSettings": {
+        "EnablePropertyTransform": {{ env_var("ENABLE_PROPERTY_TRANSFORM", "false") }},
+        "QueueHost": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_HOST", "localhost") }}",
+        "QueuePort": {{ env_var("PROPERTY_TRANSFORM_RABBITMQ_PORT", "5672") }},
+        "QueueUsername": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_USERNAME", "admin") }}",
+        "QueuePassword": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_PASSWORD", "encrypt.propertytransform.password") }}",
+        "QueueVHost": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_VHOST", "/") }}",
+        "BrokerSslEnabled": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_SSL", "false") }}",
+        "BrokerSslClientStore": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_SSL_CLIENT_STORE", "") }}",
+        "BrokerSslClientStorePassword": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_SSL_CLIENT_STORE_PASSWORD", "encrypt.broker.ssl.clientstore.password") }}",
+        "BrokerSslServerTrustStore": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_SSL_SERVER_TRUST_STORE", "") }}",
+        "BrokerSslServerTrustStorePassword": "{{ env_var("PROPERTY_TRANSFORM_RABBITMQ_SSL_SERVER_TRUST_STORE_PASSWORD","encrypt.broker.ssl.truststore.password") }}"
+    },
+    "LicensingConnectionSettings": {
+      "username": "{{ env_var("LS_USERNAME", "") }}",
+      "password": "{{ env_var("LS_PASSWORD", "encrypt.licensing.password") }}"
+    },
+    "ExtensionPackageImportPolicy":	{
+      "importEnabled": {{ env_var("EXTPKG_IMPORT_POLICY_ENABLED", "false") }},
+      "allowJarResources": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_JARRES", "false") }},
+      "allowJavascriptResources": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_JSRES", "false") }},
+      "allowCSSResources": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_CSSRES", "false") }},
+      "allowJSONResources": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_JSONRES", "false") }},
+      "allowWebAppResources": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_WEBAPPRES", "false") }},
+      "allowEntities": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_ENTITIES", "false") }},
+      "allowExtensibleEntities": {{ env_var("EXTPKG_IMPORT_POLICY_ALLOW_EXTENTITIES", "false") }},
+      "haCompatibilityImportLevel": "{{ env_var("EXTPKG_IMPORT_POLICY_HA_COMPATIBILITY_LEVEL", "WARN") }}"
+    },
+    {% set contentTypes = env_var("SUPPORTED_MEDIA_CONTENT_TYPES", "image/svg+xml,image/png,image/gif,image/bmp,image/jpeg,application/pdf,image/vnd.microsoft.icon") %}
+    "ContentTypeSettings": {
+        "supportedMediaEntityContentTypes": [
+        {% for item in contentTypes.split(',') %}
+            "{{ item }}"{{ "," if not loop.last }}
+        {% endfor %}
+      ]
+    },
+	"SolutionCentralSettings": {
+	  "SolutionCentralHost":"{{env_var("SOLUTION_CENTRAL_HOST","sc.thingworx.com")}}",
+	  {% if env_var("SOLUTION_CENTRAL_PORT", "0") != "0" %}
+	  "SolutionCentralPort": {{ env_var("SOLUTION_CENTRAL_PORT", "0") }},
+	  {% endif %}
+	  "KeyStorePath":"{{env_var("SOLUTION_CENTRAL_KEYSTORE_PATH","/ThingworxPlatform/sc-keystore")}}",
+	  "KeyStorePass":"{{ env_var("SOLUTION_CENTRAL_KEYSTORE_PASS","encrypt.sc.keystore.password") }}"
+	}
+  }
+
+{% if env_var("ENABLE_CLUSTERED_MODE", "false") == "true" %}
+  ,
+  "cache": {
+    "provider-type": "com.thingworx.cache.ignite.IgniteCacheProvider",
+    "ignite": {
+        "instance-name": "twx-core-server",
+        "default-cache-mode": "{{ env_var("IGNITE_CACHE_MODE", "PARTITIONED") }}",
+        "default-atomicity-mode": "{{ env_var("IGNITE_ATOMICITY_MODE", "ATOMIC") }}",
+        "default-backups": {{ env_var("IGNITE_BACKUPS", "1") }},
+        "default-write-sync-mode": "{{ env_var("IGNITE_WRITE_SYNC_MODE", "PRIMARY_SYNC") }}",
+        "default-read-from-backup": {{env_var("IGNITE_READ_FROM_BACKUP", false)}},
+        "client-mode": {{env_var("IGNITE_CLIENT_MODE", true)}},
+        "metrics-log-frequency": {{env_var("IGNITE_METRICS_LOG_FREQUENCY", 0)}},
+        "address-resolver" : {
+          "type": "zookeeper",
+          "connection": "{{ env_var("IGNITE_ZK_CONNECTION", "") }}",
+          "basePath" : "{{ env_var("IGNITE_ZK_BASE_PATH", "/services")}}"
+        },
+        "ssl-active": "{{env_var("IGNITE_SSL_ACTIVE","false")}}"
+    {% if env_var("IGNITE_SSL_ACTIVE", "false") == "true" %}
+        ,
+        "igniteKeyStoreFilePath": "{{ env_var("IGNITE_KEYSTORE_FILE_PATH","/certs/ignite.pfx") }}",
+        "igniteKeyStorePassword": "{{ env_var("IGNITE_KEYSTORE_PASSWORD","encrypt.ignite.keystore.password") }}"
+    {% endif %}
+    }
+  },
+  "ZookeeperSettings": {
+    "SSLEnabled": "{{ env_var("ZK_SSL_ENABLED", "false") }}"
+    {% if env_var("ZK_SSL_ENABLED", "false") == "true" %}
+    ,
+    "KeyStorePath": "{{ env_var("ZK_SSL_KEYSTORE_LOCATION","/certs/zookeeper.p12") }}",
+    "KeyStorePass":"{{ env_var("ZK_SSL_KEYSTORE_PASSWORD","encrypt.zk.keystore.password") }}"
+    {% if env_var("ZK_SSL_TRUSTSTORE_LOCATION", "") != "" %}
+    ,
+    "TrustStorePath":"{{ env_var("ZK_SSL_TRUSTSTORE_LOCATION","/certs/zookeeper-truststore.p12") }}",
+      "TrustStorePass":"{{ env_var("ZK_SSL_TRUSTSTORE_PASSWORD","encrypt.zk.truststore.password") }}"
+      {% endif %}
+      {% endif %}
+	,
+    "SASLEnabled": "{{ env_var("ZK_SASL_ENABLED", "false") }}"
+     {% if env_var("ZK_SASL_ENABLED", "false") == "true" %}
+    ,
+    "JaasConfPath": "{{ env_var("ZK_SASL_SECURITY_AUTH_LOGIN_CONFIG","/tmp1/jaas.conf") }}",
+    "Krb5ConfPath": "{{ env_var("ZK_SASL_SECURITY_KRB5_CONF","/tmp1/krb5.conf") }}"
+      {% endif %}
+    }
+{% endif %}
+{% if env_var("REALTIME_PROCESSING_ENABLED", "false") == "true" %}
+    ,
+    "RealtimeStreamProcessor": {
+      "plant": "{{env_var("REALTIME_PROCESSING_PLANT", "twx-server") }}",
+      "tenant": "{{env_var("REALTIME_PROCESSING_TENANT", "twx-server") }}",
+      "tag": "{{env_var("REALTIME_PROCESSING_TAG", "MTConnectDataItems") }}",
+      "kafka": {
+        "bootstrapServers": "{{ env_var("REALTIME_PROCESSING_KAFKA_CONNECTION", "") }}",
+        "producerTopic": "{{ env_var("REALTIME_PROCESSING_TOPIC_NAME", "connect-plants-routed") }}",
+        "acks": "{{ env_var("REALTIME_PROCESSING_ACKS", "all") }}",
+        "compressionType": "{{ env_var("REALTIME_PROCESSING_COMPRESSION_TYPE", "none") }}",
+        "batchSize": {{ env_var("REALTIME_PROCESSING_BATCH_SIZE", "1000") }},
+        "lingerMs": {{ env_var("REALTIME_PROCESSING_LINGER_MS", "0") }},
+        "bufferMemory": {{ env_var("REALTIME_PROCESSING_BUFFER_MEMORY", "33554432") }}
+      }
+    }
+{% endif %}
+  ,
+  "application-keys" : [
+    {
+      "name": "ProvisioningKey",
+      "description" : "Provisioning key for use at initial platform start",
+      "duration": "{{ env_var("PROVISIONING_APPKEY_DURATION", "P1D") }}",
+      "secret": "provisioning_app_key",
+      "associated-user":  "Administrator"
+    },
+    {
+     "name": "CXServerConnectionKey",
+     "description": "Always on Connection Server connection key",
+     "duration": "{{ env_var("CXSERVER_APPKEY_DURATION", "P160D") }}",
+     "secret": "cx_app_key",
+     "associated-user": "CXUser"
+    }]
+}

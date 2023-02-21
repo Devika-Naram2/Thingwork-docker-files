@@ -1,0 +1,14 @@
+{% set schema_name = env_var("TWX_DATABASE_SCHEMA", "thingworx") %}
+{
+  "PersistenceProviderPackageConfigs": {
+    "PostgresPersistenceProviderPackage": {
+      "ConnectionInformation": {
+        "jdbcUrl": "jdbc:postgresql://{{ env_var("DATABASE_HOST", "postgresql") }}:{{ env_var("DATABASE_PORT", "5432") }}/{{ env_var("TWX_DATABASE_DBNAME", schema_name) }}",
+        "password": "encrypt.db.password",
+        "username": "{{ env_var("TWX_DATABASE_USERNAME", "") }}{% if env_var("IS_AZURE_POSTGRES", "false") == "true" %}@{{ env_var("DATABASE_HOST", "postgresql") }}{% endif %}",
+        "sslMode": "{{ env_var("PGSSLMODE", "disable") }}",
+        "sslRootCert": "{{ env_var("PGSSLROOTCERT", "") }}"
+      }
+    }
+  }
+}
